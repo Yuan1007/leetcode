@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetCode 解題</title>
+    <title>String Compression Visualization</title>
     <style>
         .section {
             display: flex;
@@ -13,6 +13,7 @@
         }
         .row {
             display: flex;
+            margin: 10px 0;
         }
         .block {
             margin: 0 5px;
@@ -26,35 +27,104 @@
         .highlight {
             background-color: orange;
         }
-        .compressed {
-            display: flex;
-            flex-wrap: wrap;
+        .code {
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre;
+        }
+        .code-line {
+            background-color: white;
+        }
+        .highlight-line {
+            background-color: lightblue;
         }
     </style>
 </head>
 <body>
     <div class="section">
         <h2>443. String Compression</h2>
-        <div id="original" class="row"></div>
+        <div class="row" id="original"></div>
         <div class="row">
             <div id="currentChar" class="block"></div>
             <div id="count" class="block"></div>
         </div>
-        <div id="compressed" class="compressed row"></div>
+        <div class="row" id="compressed"></div>
+        <button onclick="nextStep()">Next Step</button>
     </div>
-    <button onclick="nextStep()">Next Step</button>
+    <div class="section">
+        <pre class="code" id="code">
+1. public int compress(char[] chars) {
+2.     int n = chars.length;
+3.     if (n == 1) return 1;
+4.     
+5.     int writeIndex = 0; // 寫入位置
+6.     int count = 1; // 當前字符的計數
+7.     
+8.     for (int i = 1; i <= n; i++) {
+9.         if (i == n || chars[i] != chars[i - 1]) {
+10.            chars[writeIndex++] = chars[i - 1];
+11.            if (count > 1) {
+12.                for (char c : Integer.toString(count).toCharArray()) {
+13.                    chars[writeIndex++] = c;
+14.                }
+15.            }
+16.            count = 1;
+17.        } else {
+18.            count++;
+19.        }
+20.    }
+21.    return writeIndex;
+22. }
+        </pre>
+    </div>
 
     <script>
+        const codeLines = document.querySelectorAll('.code-line');
+        const code = document.getElementById('code').innerText.split('\n');
         const chars = ['a', 'a', 'b', 'b', 'c', 'c', 'c'];
         const originalContainer = document.getElementById('original');
         const currentCharContainer = document.getElementById('currentChar');
         const countContainer = document.getElementById('count');
         const compressedContainer = document.getElementById('compressed');
         
-        let currentIndex = 0;
+        let currentIndex = 1;
         let currentCount = 1;
+        let writeIndex = 0;
         let compressedResult = [];
         let isProcessing = false;
+        let stepIndex = 0;
+        let currentLine = 0;
+
+        const steps = [
+            { line: 2, action: () => { /* int n = chars.length; */ } },
+            { line: 3, action: () => { if (chars.length === 1) return 1; } },
+            { line: 5, action: () => { writeIndex = 0; } },
+            { line: 6, action: () => { currentCount = 1; } },
+            { line: 8, action: () => { if (currentIndex <= chars.length) stepIndex++; } },
+            { line: 9, action: () => { 
+                if (currentIndex == chars.length || chars[currentIndex] != chars[currentIndex - 1]) {
+                    stepIndex++;
+                } else {
+                    stepIndex = 18;
+                }
+            }},
+            { line: 10, action: () => { chars[writeIndex++] = chars[currentIndex - 1]; } },
+            { line: 11, action: () => { if (currentCount > 1) stepIndex++; else stepIndex = 16; } },
+            { line: 12, action: () => {} },
+            { line: 13, action: () => {
+                Integer.toString(currentCount).split('').forEach((c, i) => chars[writeIndex + i] = c);
+                writeIndex += currentCount.toString().length;
+            }},
+            { line: 14, action: () => {} },
+            { line: 15, action: () => {} },
+            { line: 16, action: () => { currentCount = 1; } },
+            { line: 17, action: () => {} },
+            { line: 18, action: () => { currentCount++; } },
+            { line: 19, action: () => {} },
+            { line: 20, action: () => { if (currentIndex <= chars.length) stepIndex = 8; else stepIndex++; } },
+            { line: 21, action: () => { return writeIndex; } },
+            { line: 22, action: () => {} },
+        ];
 
         function displayOriginal() {
             originalContainer.innerHTML = '';
@@ -69,30 +139,34 @@
             });
         }
 
+        function highlightCode(line) {
+            const codeHTML = code.map((lineCode, index) => {
+                return `<span class="code-line ${index + 1 === line ? 'highlight-line' : ''}">${lineCode}</span>`;
+            }).join('\n');
+            document.getElementById('code').innerHTML = codeHTML;
+        }
+
         function nextStep() {
-            if (isProcessing || currentIndex >= chars.length) return;
+            if (isProcessing || stepIndex >= steps.length) return;
             isProcessing = true;
-            
+
             displayOriginal();
-            currentCharContainer.textContent = chars[currentIndex];
+            steps[stepIndex].action();
+            highlightCode(steps[stepIndex].line);
+            currentCharContainer.textContent = chars[currentIndex] || '';
             countContainer.textContent = currentCount;
 
-            if (currentIndex + 1 < chars.length && chars[currentIndex] === chars[currentIndex + 1]) {
-                currentCount++;
-            } else {
-                compressedResult.push(chars[currentIndex]);
-                if (currentCount > 1) {
-                    currentCount.toString().split('').forEach(num => compressedResult.push(num));
-                }
-                compressedContainer.innerHTML = compressedResult.map(char => `<div class="block">${char}</div>`).join('');
-                currentCount = 1;
+            if (steps[stepIndex].line === 10 || steps[stepIndex].line === 13) {
+                compressedContainer.innerHTML = chars.slice(0, writeIndex).map(char => `<div class="block">${char}</div>`).join('');
             }
 
             currentIndex++;
+            stepIndex++;
             isProcessing = false;
         }
 
         displayOriginal();
+        highlightCode(2);
     </script>
 </body>
 </html>
