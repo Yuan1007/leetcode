@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>String Compression Visualization</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .block {
+            margin: 0 5px;
+            padding: 10px;
+            background-color: lightblue;
+            border: 1px solid blue;
+            width: 40px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .highlight {
+            background-color: orange;
+        }
+        .compressed {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="original"></div>
+        <div id="currentChar" class="block"></div>
+        <div id="count" class="block"></div>
+        <div id="compressed" class="compressed"></div>
+    </div>
+    <button onclick="startCompression()">Start Compression</button>
+
+    <script>
+        const chars = ['a', 'a', 'b', 'b', 'c', 'c', 'c'];
+        const originalContainer = document.getElementById('original');
+        const currentCharContainer = document.getElementById('currentChar');
+        const countContainer = document.getElementById('count');
+        const compressedContainer = document.getElementById('compressed');
+        
+        let currentIndex = 0;
+        let currentCount = 1;
+        let compressedIndex = 0;
+        let compressedResult = [];
+
+        function displayOriginal() {
+            originalContainer.innerHTML = '';
+            chars.forEach((char, index) => {
+                const charBlock = document.createElement('div');
+                charBlock.className = 'block';
+                charBlock.textContent = char;
+                if (index === currentIndex) {
+                    charBlock.classList.add('highlight');
+                }
+                originalContainer.appendChild(charBlock);
+            });
+        }
+
+        async function startCompression() {
+            while (currentIndex < chars.length) {
+                displayOriginal();
+                currentCharContainer.textContent = chars[currentIndex];
+                countContainer.textContent = currentCount;
+
+                if (currentIndex + 1 < chars.length && chars[currentIndex] === chars[currentIndex + 1]) {
+                    currentCount++;
+                } else {
+                    compressedResult.push(chars[currentIndex]);
+                    if (currentCount > 1) {
+                        currentCount.toString().split('').forEach(num => compressedResult.push(num));
+                    }
+                    compressedContainer.innerHTML = compressedResult.map(char => `<div class="block">${char}</div>`).join('');
+                    currentCount = 1;
+                }
+
+                currentIndex++;
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒延遲
+            }
+        }
+
+        displayOriginal();
+    </script>
+</body>
+</html>
