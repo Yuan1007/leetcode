@@ -7,8 +7,12 @@
     <style>
         .section {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             margin-top: 20px;
+        }
+        .row {
+            display: flex;
         }
         .block {
             margin: 0 5px;
@@ -31,12 +35,14 @@
 <body>
     <div class="section">
         <h2>443. String Compression</h2>
-        <div id="original"></div>
-        <div id="currentChar" class="block"></div>
-        <div id="count" class="block"></div>
-        <div id="compressed" class="compressed"></div>
+        <div id="original" class="row"></div>
+        <div class="row">
+            <div id="currentChar" class="block"></div>
+            <div id="count" class="block"></div>
+        </div>
+        <div id="compressed" class="compressed row"></div>
     </div>
-    <button onclick="startCompression()">Start Compression</button>
+    <button onclick="nextStep()">Next Step</button>
 
     <script>
         const chars = ['a', 'a', 'b', 'b', 'c', 'c', 'c'];
@@ -47,8 +53,8 @@
         
         let currentIndex = 0;
         let currentCount = 1;
-        let compressedIndex = 0;
         let compressedResult = [];
+        let isProcessing = false;
 
         function displayOriginal() {
             originalContainer.innerHTML = '';
@@ -63,26 +69,27 @@
             });
         }
 
-        async function startCompression() {
-            while (currentIndex < chars.length) {
-                displayOriginal();
-                currentCharContainer.textContent = chars[currentIndex];
-                countContainer.textContent = currentCount;
+        function nextStep() {
+            if (isProcessing || currentIndex >= chars.length) return;
+            isProcessing = true;
+            
+            displayOriginal();
+            currentCharContainer.textContent = chars[currentIndex];
+            countContainer.textContent = currentCount;
 
-                if (currentIndex + 1 < chars.length && chars[currentIndex] === chars[currentIndex + 1]) {
-                    currentCount++;
-                } else {
-                    compressedResult.push(chars[currentIndex]);
-                    if (currentCount > 1) {
-                        currentCount.toString().split('').forEach(num => compressedResult.push(num));
-                    }
-                    compressedContainer.innerHTML = compressedResult.map(char => `<div class="block">${char}</div>`).join('');
-                    currentCount = 1;
+            if (currentIndex + 1 < chars.length && chars[currentIndex] === chars[currentIndex + 1]) {
+                currentCount++;
+            } else {
+                compressedResult.push(chars[currentIndex]);
+                if (currentCount > 1) {
+                    currentCount.toString().split('').forEach(num => compressedResult.push(num));
                 }
-
-                currentIndex++;
-                await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒延遲
+                compressedContainer.innerHTML = compressedResult.map(char => `<div class="block">${char}</div>`).join('');
+                currentCount = 1;
             }
+
+            currentIndex++;
+            isProcessing = false;
         }
 
         displayOriginal();
